@@ -1,4 +1,4 @@
-package com.example.contactpdm
+package com.example.contactpdm.ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -7,6 +7,15 @@ import com.example.contactpdm.databinding.ActivityMainBinding
 import com.example.contactpdm.model.Contact
 
 class MainActivity : AppCompatActivity() {
+
+    /* Tarefa
+        Criar tela ContactActivity
+        nameEt
+        addressEt,
+        phoneEt
+        emailEt
+        saveBtn
+    * */
 
     private val amb: ActivityMainBinding by lazy {
         ActivityMainBinding.inflate(layoutInflater)
