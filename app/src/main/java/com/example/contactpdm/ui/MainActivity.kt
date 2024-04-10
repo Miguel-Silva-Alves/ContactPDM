@@ -1,16 +1,19 @@
 package com.example.contactpdm.ui
 
 import android.content.Intent
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ArrayAdapter
+import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import com.example.contactpdm.R
+import com.example.contactpdm.adapter.ContactAdapter
 import com.example.contactpdm.databinding.ActivityMainBinding
 import com.example.contactpdm.model.Contact
 
@@ -33,8 +36,8 @@ class MainActivity : AppCompatActivity() {
     private val contactList: MutableList<Contact> = mutableListOf()
 
     // Adapter
-    private val contactAdapter: ArrayAdapter<String> by lazy {
-        ArrayAdapter(this, android.R.layout.simple_list_item_1, contactList.map { it.name })
+    private val contactAdapter: ContactAdapter by lazy {
+        ContactAdapter(this, contactList)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,17 +53,24 @@ class MainActivity : AppCompatActivity() {
         amb.contactlist.adapter = contactAdapter
 
         // Parl configuration
-        parl = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult(),
-            object: ActivityResultCallback<ActivityResult> {
-                override fun onActivityResult(result: ActivityResult) {
-
+        parl = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                val contact = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    result.data?.getParcelableExtra("EXTRA_CONTACT", Contact::class.java)
+                } else {
+//                    TODO("VERSION.SDK_INT < TIRAMISU")
+                    result.data?.getParcelableExtra("EXTRA_CONTACT")
                 }
-            })
+                if (contact != null){
+                    contactList.add(contact)
+                    contactAdapter.notifyDataSetChanged()
+                }
+            }
+        }
     }
 
     private fun fillContacts() {
-        for (i in 1..50) {
+        for (i in 1..10) {
             contactList.add(
                 Contact(i, "Nome $i", "Address $i", "Phone $i", "Email $i")
             )
