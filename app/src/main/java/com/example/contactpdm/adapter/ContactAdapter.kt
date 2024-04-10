@@ -23,7 +23,6 @@ class ContactAdapter(context: Context, private var contactList: MutableList<Cont
         var contactTilleView = convertView
         if(contactTilleView == null){
 
-
             // Criando a célula
             contactTilleView = LayoutInflater.from(context).inflate(
                 R.layout.tille_contact,
@@ -43,8 +42,10 @@ class ContactAdapter(context: Context, private var contactList: MutableList<Cont
         }
 
         // Inserir os valores na célula
-        (contactTilleView?.tag as TilleContactHolder).nameTv.text = contact.name
-        (contactTilleView?.tag as TilleContactHolder).emailTv.text = contact.email
+        (contactTilleView?.tag as TilleContactHolder).apply {
+            this.nameTv.text = contact.name
+            this.emailTv.text = contact.email
+        }
 
         // Retorna a view preechida
         return contactTilleView
