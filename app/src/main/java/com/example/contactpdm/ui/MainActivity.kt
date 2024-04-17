@@ -4,8 +4,11 @@ import android.content.Intent
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.ContextMenu
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.AdapterView.AdapterContextMenuInfo
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
@@ -51,6 +54,15 @@ class MainActivity : AppCompatActivity() {
         fillContacts()
 
         amb.contactlist.adapter = contactAdapter
+        registerForContextMenu(amb.contactlist)
+
+        amb.contactlist.setOnItemClickListener{_, _, position, _ ->
+            val contact = contactList[position]
+            val viewContactIntent = Intent(this@MainActivity, ContactActivity::class.java)
+            viewContactIntent.putExtra("EXTRA_CONTACT", contact)
+            viewContactIntent.putExtra("EXTRA_VIEW_CONTACT", true)
+            startActivity(viewContactIntent)
+        }
 
         // Parl configuration
         parl = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -61,8 +73,16 @@ class MainActivity : AppCompatActivity() {
 //                    TODO("VERSION.SDK_INT < TIRAMISU")
                     result.data?.getParcelableExtra("EXTRA_CONTACT")
                 }
-                if (contact != null){
-                    contactList.add(contact)
+                contact?.let {newOrEditContact ->
+                    val position = contactList.indexOfFirst { it.id == newOrEditContact.id }
+                    if (position != -1){
+                        // Contato já existe
+                        contactList[position] = newOrEditContact
+                    }else{
+                        // Contato não existe e foi adicionado
+                        contactList.add(newOrEditContact)
+                    }
+
                     contactAdapter.notifyDataSetChanged()
                 }
             }
@@ -74,6 +94,37 @@ class MainActivity : AppCompatActivity() {
             contactList.add(
                 Contact(i, "Nome $i", "Address $i", "Phone $i", "Email $i")
             )
+        }
+    }
+
+    override fun onCreateContextMenu(
+        menu: ContextMenu?,
+        v: View?,
+        menuInfo: ContextMenu.ContextMenuInfo?
+    ) {
+        menuInflater.inflate(R.menu.context_menu_main, menu)
+    }
+
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        val position = (item.menuInfo as AdapterContextMenuInfo).position
+        return when(item.itemId){
+            R.id.removeContactMi -> {
+                contactList.removeAt(position)
+                contactAdapter.notifyDataSetChanged()
+                Toast.makeText(this, "Contact removed", Toast.LENGTH_SHORT).show()
+                true
+            }
+            R.id.editContactMi -> {
+                val contact = contactList[position]
+                parl.launch(
+                    Intent(this, ContactActivity::class.java).apply {
+                        putExtra("EXTRA_CONTACT", contact)
+                    }
+                )
+                true
+            }
+
+            else -> {false}
         }
     }
 
